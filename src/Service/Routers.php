@@ -6,6 +6,7 @@ use Klein\klein;
 use Klein\Request;
 use Pimple\Container;
 use BaseTemplatePHP\IEnvironment;
+use BaseTemplatePHP\Service\Middleware\Onion;
 
 class Routers
 {
@@ -14,12 +15,12 @@ class Routers
 	private $container;
 
 	private $routers = [
-		// ["method" => "post", 'path' => "", "controller" => "", "responseMethod" => "", "canActivate" => "" ],
+		// ["method" => "post", 'path' => "", "controller" => "", "responseMethod" => "", "middlewareLayers" => []],
 
 	];
 
 	private $routersPage = [
-		// ["method" => "get", 'path' => "", "controller" => "", "responseMethod" => "", "viewLayout" => "", "viewRender" => ""],
+		// ["method" => "get", 'path' => "", "controller" => "", "responseMethod" => "", "viewLayout" => "", "viewRender" => "", "middlewareLayers" => []],
 	];
 
 	public function __construct(Container $container = null)
@@ -52,12 +53,23 @@ class Routers
 	public function respondAPI()
 	{
 		foreach ($this->routers as $router) {
-			$this->klein->respond($router['method'], $router['path'], function ($request, $resopnse) use ($router) {
+			$this->klein->respond($router['method'], $router['path'], function ($request, $response) use ($router) {
 				$controller = new $router['controller']($this->container);
 				try {
-					return $controller->{$router['responseMethod']}($request);
+					if ((empty($router['middlewareLayers']))) {
+						return call_user_func([$controller, $router['responseMethod']], $request, $response);
+					} else {
+						return $this->provideMiddleware(
+							$router['middlewareLayers'],
+							$this->container,
+							$request,
+							$response,
+							$controller,
+							$router['responseMethod']
+						);
+					}
 				} catch (\Exception $e) {
-					$resopnse->code($e->getCode());
+					$response->code($e->getCode());
 					return $e->getMessage();
 				}
 			});
@@ -67,10 +79,38 @@ class Routers
 	public function respondPage()
 	{
 		foreach ($this->routersPage as $routerPage) {
-			$this->klein->respond($routerPage['method'], $routerPage['path'], function ($request, $resopnse, $service) use ($routerPage) {
+			$this->klein->respond($routerPage['method'], $routerPage['path'], function ($request, $response, $service) use ($routerPage) {
+				$this->container['page'] = function ($c) use ($service) {
+					return  $service;
+				};
 				$controller = new $routerPage['controller']($this->container);
-				$service = $controller->{$routerPage['responseMethod']}($request, $service);
+				if ((empty($routerPage['middlewareLayers']))) {
+					call_user_func([$controller, $routerPage['responseMethod']], $request, $response);
+				} else {
+					$this->provideMiddleware(
+						$routerPage['middlewareLayers'],
+						$this->container,
+						$request,
+						$response,
+						$controller,
+						$routerPage['responseMethod']
+					);
+				}
+				$service = $this->container['page'];
 			});
 		}
+	}
+
+	private function provideMiddleware(array $middlewares, $container, $request, $response, $controller, $method)
+	{
+		// 創建 onion 並在各層中注入相依物件
+		$onion = new Onion(\array_map(function ($class) use ($container) {
+			return new $class($container);
+		}, $middlewares));
+
+		// 依序執行個中介層邏輯
+		return $onion->handle($request, function ($request, $response) use ($controller, $method) {
+			return $controller->{$method}($request, $response);
+		}, $response);
 	}
 }
