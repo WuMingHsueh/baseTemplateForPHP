@@ -97,6 +97,7 @@ class Routers
 					);
 				}
 				$service = $this->container['page'];
+				unset($this->container['page']);  // 清空Service 以防下一個router使用時發生Service frozen
 			});
 		}
 	}
