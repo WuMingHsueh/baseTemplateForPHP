@@ -1,0 +1,13 @@
+vlucas/phpdotenv
+klein/klein
+pimple/pimple
+illuminate/database
+
+robmorgan/phinx or davedevelopment/phpmig
+paragonie/halite
+tedious/Stash
+
+tightenco/collect
+league/fractal
+swiftmailer/swiftmailer
+monolog/monolog
