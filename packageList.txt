@@ -3,9 +3,9 @@ klein/klein
 pimple/pimple
 illuminate/database
 
-robmorgan/phinx or davedevelopment/phpmig
-paragonie/halite
-tedious/Stash
+davedevelopment/phpmig
+paragonie/halite        (need sodium library)
+tedious/Stash           (need yaml php library)
 
 tightenco/collect
 league/fractal

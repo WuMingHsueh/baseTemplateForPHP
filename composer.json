@@ -10,7 +10,8 @@
 	"require": {},
 	"autoload": {
 		"psr-4": {
-			"BaseTemplatePHP\\" : "src/"
+			"BaseTemplatePHP\\" : "src/",
+			"BaseTemplatePHP\\Providers\\": "bootstrap/Providers/"
 		}
 	}
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace BaseTemplatePHP\Service\Middleware;
+namespace BaseTemplatePHP\Providers\Middleware;
 
 use Closure;
 
