@@ -4,13 +4,14 @@ namespace BaseTemplatePHP\Providers\Routers;
 
 use Klein\klein;
 use Pimple\Container;
+use BaseTemplatePHP\Providers\Middleware\Onion;
 
 class BaseRespond
 {
 	public function responds(Container &$container, klein &$klein)
 	{ }
 
-	private function provideMiddleware(array $middlewares, $container, $request, $response, $controller, $method)
+	protected function provideMiddleware(array $middlewares, $container, $request, $response, $controller, $method)
 	{
 		// 創建 onion 並在各層中注入相依物件
 		$onion = new Onion(\array_map(function ($class) use ($container) {
