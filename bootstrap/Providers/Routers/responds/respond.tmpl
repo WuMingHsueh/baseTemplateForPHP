@@ -1,7 +1,7 @@
 <?php
 
 $klein->with('/auth', function () use ($klein, &$container) {
-	$controller = new PurchaseSalesInventory\Controllers\Auth\LoginCtrl($container);
+	$controller = new BaseTemplatePHP\Controllers\Auth\LoginCtrl($container);
 	$klein->respond('GET', '/sign-in', function ($request, $response, $service, $app) use (&$controller, &$container) {
 		$container['page'] = $service;
 		$controller->loginPage($request, $response);
@@ -22,7 +22,7 @@ $klein->with('/auth', function () use ($klein, &$container) {
 	});
 });
 
-$homeCtrl = new PurchaseSalesInventory\Controllers\Home($container);
+$homeCtrl = new BaseTemplatePHP\Controllers\Home($container);
 $klein->responsd('get', '', function ($request, $response, $service, $app) use (&$homeCtrl, &$container) {
 	$container['page'] = $service;
 	$homeCtrl->index($request, $response);
